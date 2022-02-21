@@ -1,18 +1,34 @@
 <template>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png" />
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App" />
-  </div>
+  <v-container>
+    <h2 class="mb-6">Welcome to Speakeasy Cards!</h2>
+    <v-row>
+      <v-col cols="12" v-for="b in buttons" :key="b.name">
+        <div>
+          <div class="my-1">
+            <v-btn @click="to(b.path)">{{ b.name }}</v-btn>
+          </div>
+        </div>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import HelloWorld from "@/components/HelloWorld.vue"; // @ is an alias to /src
-
-@Component({
-  components: {
-    HelloWorld,
+import Vue from "vue";
+export default Vue.extend({
+  data() {
+    return {
+      buttons: [
+        { name: "Create Room", path: "create" },
+        { name: "Join Room", path: "join" },
+        { name: "Single Play", path: "single" },
+      ],
+    };
   },
-})
-export default class Home extends Vue {}
+  methods: {
+    to(path: string) {
+      this.$router.push(path);
+    },
+  },
+});
 </script>
