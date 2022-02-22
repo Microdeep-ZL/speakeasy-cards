@@ -43,12 +43,8 @@
         <v-btn @click="previous">previous</v-btn>
       </v-col>
 
-
-      <v-col cols="4">
-        <v-btn @click="send" :disabled="view !='hand'"><v-icon>mdi-send</v-icon></v-btn>
-      </v-col>
-
-
+      <!-- 弹出对话框，选择要把卡送给谁 -->
+      <the-send />
 
       <v-col cols="4">
         <v-btn @click="next">next</v-btn>
@@ -81,29 +77,37 @@
   </v-container>
 </template>
 
+
 <script lang="ts">
 import Vue from "vue";
 import { mapMutations, mapState } from "vuex";
+import TheSend from "@/components/TheSend.vue";
 /* eslint-disable */
 
 export default Vue.extend({
   name: "HelloWorld",
+  components: {
+    TheSend,
+  },
 
   data: () => ({
     folder: "images/image",
     first_alarm: false,
     last_alarm: false,
 
-    player_to:''
+    player_to: "",
+    dialog: false,
   }),
   mounted() {
+    // 测试用
     // window.vue=this
-    this.$store.commit("connect");
+ 
+ this.$store.commit("connect");
   },
   computed: {
-      players_num(){
-          return this.players.length
-      },
+    players_num() {
+      return this.players.length;
+    },
     img_path() {
       try {
         return require("../" +
@@ -140,8 +144,7 @@ export default Vue.extend({
       "room",
       "player",
       "identity",
-    //   "players_num",
-    "players",
+      "players",
       "cards",
       "card_n",
       "view",
@@ -155,16 +158,6 @@ export default Vue.extend({
         room: this.room,
         player: this.player,
         view: this.view,
-        card_index: this.card_n[this.view] - 1,
-      };
-      this.client.send(JSON.stringify(info));
-    },
-    send() {
-      const info = {
-        task: "send",
-        room: this.room,
-        player: this.player,
-        to: this.player_to,
         card_index: this.card_n[this.view] - 1,
       };
       this.client.send(JSON.stringify(info));

@@ -113,7 +113,6 @@ export default {
           this.$store.commit("setRoom", this.room);
           this.$store.commit("setPlayer", this.player);
           this.$store.commit("setIdentity", data.data.identity);
-          // this.$store.commit("setPlayersNum", data.data.players_num);
           this.$router.push("/play");
         });
     },

@@ -11,7 +11,6 @@ export default new Vuex.Store({
     identity: "",
     client: null as any,
 
-    // players_num: 0, // todo 写好players之后，弃用players_num
     players:[],
 
     card_n: { table: 0, hand: 0 },
@@ -22,7 +21,6 @@ export default new Vuex.Store({
     view: "table" as "table" | "hand",
 
     phone_info: 'phone_info'
-    // phone_info:'phone_info'
 
   },
   getters: {},
@@ -36,9 +34,6 @@ export default new Vuex.Store({
     setIdentity(state, identity) {
       state.identity = identity;
     },
-    // setPlayersNum(state, players_num) {
-    //   state.players_num = players_num
-    // },
     setTitle(state, title) {
       state.title = title
     },
