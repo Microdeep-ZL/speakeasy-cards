@@ -18,12 +18,12 @@
         <h5>view: {{ view }}</h5>
       </v-col>
 
-      <!-- <v-col cols="3">
+      <v-col v-show="creator_view" cols="3">
         <h3>Deal Cards</h3>
       </v-col>
-      <v-col cols="2" v-for="i in [1, 3, 5, 8]" :key="'image' + i">
+      <v-col v-show="creator_view" cols="2" v-for="i in [1, 3, 5, 8]" :key="'image' + i">
         <v-btn small @click="deal(i)">{{ i }}</v-btn>
-      </v-col> -->
+      </v-col>
 
       <!-- 卡牌展示 -->
       <v-col cols="12">
@@ -58,37 +58,100 @@
   </v-container>
 </template>
 
-
 <script lang="ts">
 import Vue from "vue";
+import axios from "axios";
 /* eslint-disable */
+function getRooms(fun: Function) {
+  axios
+    .get("http://47.107.143.38:6503", {
+      params: {
+        task: "getRooms",
+      },
+    })
+    .then((data) => {
+      fun(data.data);
+    });
+}
+
 export default Vue.extend({
   name: "HelloWorld",
 
   data: () => ({
     folder: "images/image",
-    nums: [1],
 
+    nums: { table: [50, 12, 23], hand: [2, 3] },
     card_n: 1,
-    card_total: 1,
+    // card_total: 3,
 
     first_alarm: false,
     last_alarm: false,
 
     view: "table" as "table" | "hand",
   }),
-  mounted(){
-    // this.$store.commit("connect")
+  mounted() {
+    // window.vue=this
+    this.$store.commit("connect");
   },
   computed: {
     img_path() {
-      return require("../" + this.folder + this.nums[this.card_n - 1] + ".jpg");
+      return require("../" +
+        this.folder +
+        this.nums[this.view][this.card_n - 1] +
+        ".jpg");
+    },
+    players_num() {},
+    card_total() {
+      return this.nums[this.view].length;
+    },
+    creator_view(){
+      if(this.$store.state.identity=="Creator"){
+        return true
+      }
+      return false
     }
   },
   methods: {
     switchView() {
       this.view = this.view == "table" ? "hand" : "table";
+      // todo
     },
+    _setNums() {
+      // update player's cards in hand
+      // let rooms = require("@/assets/rooms.json");
+      getRooms((rooms: any) => {
+        for (let player of rooms[this.$store.state.room].players) {
+          if (player.name == this.$store.state.player) {
+            this.nums.hand = player.cards;
+            break;
+          }
+        }
+      });
+
+      // this.card_total = this.nums.length;
+    },
+    deal(i: number) {
+      axios.get(
+        "http://47.107.143.38:6503/?task=deal&num=" +
+          i +
+          "&room=" +
+          this.$store.state.room
+      );
+      // this._setNums();
+    },
+    // draw(cards: number) {
+    //   this.last_alarm = false;
+    //   this.first_alarm = false;
+
+    //   this.nums = [];
+    //   for (var i = 0; i < cards; i++) {
+    //     let a;
+    //     do {
+    //       a = Math.floor(Math.random() * 54) + 1; // random number from 1 to 54
+    //     } while (a in this.nums);
+    //     this.nums.push(a);
+    //   }
+    // },
     previous() {
       this.last_alarm = false;
       if (this.card_n == 1) {

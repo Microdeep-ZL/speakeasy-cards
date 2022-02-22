@@ -34,6 +34,11 @@ const routes: Array<RouteConfig> = [
     name: "player",
     component: () => import("../views/PlayPlayer.vue"),
   },
+  {
+    path: "/play",
+    name: "play",
+    component: () => import("../views/Play.vue"),
+  },
 ];
 
 const router = new VueRouter({

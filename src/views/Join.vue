@@ -56,23 +56,41 @@ export default {
         return;
       }
 
+      // this.$store.commit("setRoom", this.room);
+      // this.$store.commit("setPlayer", this.player);
+
+      // this.$store.commit("connect", "join");
+      // this.$store.state.client.onmessage = function (e) {
+      //   const data = JSON.parse(e.data);
+      //   switch (data.task) {
+      //     case "updatePlayersNum":
+      //       state.players_num = data.num;
+      //       break;
+      //     case "join":
+      //       break;
+      //   }
+      // };
+      // todo Create那边也要改
+
       axios
         .get(
-          "http://localhost:8081/?task=join&room=" +
+          "http://47.107.143.38:6503?task=join&room=" +
             this.room +
             "&player=" +
             this.player
         )
         .then((data) => {
-          // console.log(data.data.identity);
           if (data.data.notCreated) {
             alert("The room has not been created!");
-            return
+            return;
           }
           this.$store.commit("setRoom", this.room);
           this.$store.commit("setPlayer", this.player);
           this.$store.commit("setIdentity", data.data.identity);
-          this.$router.push(data.data.identity);
+          this.$store.commit("setPlayersNum", data.data.players_num);
+          // this.$store.commit("connect");
+          // this.$router.push(data.data.identity);
+          this.$router.push("/play");
         });
 
       // if (rooms[this.room].creater.name == this.player) {

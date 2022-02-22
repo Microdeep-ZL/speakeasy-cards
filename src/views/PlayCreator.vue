@@ -12,13 +12,13 @@
         </h5>
       </v-col>
       <v-col cols="4" class="caption">
-        <h5>players: {{ players_num }}</h5>
+        <h5>players: {{ this.$store.state.players_num }}</h5>
       </v-col>
       <v-col cols="4" class="text-right caption">
         <h5>view: {{ view }}</h5>
       </v-col>
 
-      <v-col cols="3">
+      <v-col cols="3" v-show="creator_view">
         <h3>Deal Cards</h3>
       </v-col>
       <v-col cols="2" v-for="i in [1, 3, 5, 8]" :key="'image' + i">
@@ -62,15 +62,15 @@
 import Vue from "vue";
 import axios from "axios";
 /* eslint-disable */
-function getRooms(fun:Function) {
+function getRooms(fun: Function) {
   axios
-    .get("http://localhost:8081", {
+    .get("http://47.107.143.38:6503", {
       params: {
         task: "getRooms",
       },
     })
     .then((data) => {
-      fun(data.data)
+      fun(data.data);
     });
 }
 
@@ -87,10 +87,11 @@ export default Vue.extend({
     first_alarm: false,
     last_alarm: false,
 
-    view: "hand" as "table" | "hand",
+    view: "table" as "table" | "hand",
   }),
   mounted() {
     // window.vue=this
+    // this.$store.commit("connect");
   },
   computed: {
     img_path() {
@@ -99,12 +100,16 @@ export default Vue.extend({
         this.nums[this.view][this.card_n - 1] +
         ".jpg");
     },
-    players_num() {
-      
-},
+    players_num() {},
     card_total() {
       return this.nums[this.view].length;
     },
+    creator_view(){
+      if(this.$store.state.identity=="Creator"){
+        return true
+      }
+      return false
+    }
   },
   methods: {
     switchView() {
@@ -114,21 +119,20 @@ export default Vue.extend({
     _setNums() {
       // update player's cards in hand
       // let rooms = require("@/assets/rooms.json");
-      getRooms((rooms:any)=>{
+      getRooms((rooms: any) => {
         for (let player of rooms[this.$store.state.room].players) {
           if (player.name == this.$store.state.player) {
             this.nums.hand = player.cards;
             break;
           }
         }
-
-      })
+      });
 
       // this.card_total = this.nums.length;
     },
     deal(i: number) {
       axios.get(
-        "http://localhost:8081/?task=deal&num=" +
+        "http://47.107.143.38:6503/?task=deal&num=" +
           i +
           "&room=" +
           this.$store.state.room

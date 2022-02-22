@@ -57,14 +57,8 @@ export default {
         return;
       }
 
-      // let rooms = require("@/assets/rooms.json");
-      // if (rooms[this.room] != undefined) {
-      //   alert("The room name has been used!");
-      //   return;
-      // }
-
       axios
-        .get("http://localhost:8081", {
+        .get("http://47.107.143.38:6503", {
           params: {
             task: "create",
             room: this.room,
@@ -80,13 +74,30 @@ export default {
             this.$store.commit("setRoom", this.room);
             this.$store.commit("setPlayer", this.player);
             this.$store.commit("setIdentity", "Creator");
-            this.$router.push("/Creator");
+            this.$store.commit("setPlayersNum", 1);
+            // this.$store.commit("connect")
+            // this.$router.push("/Creator");
+            this.$router.push("/play");
           },
           (err) => {
             console.log(err);
           }
         );
-      // this.$router.push()
+    },
+
+    connect() {
+      var client = new WebSocket("ws://47.107.143.38:8080/", "echo-protocol");
+      client.onmessage = function (e) {
+        // alert(e.data)
+        console.log("Received: '" + e.data + "'");
+      };
+      client.onopen = function (res) {
+        let info = {
+          room: this.room,
+          player: this.player,
+        };
+        client.send(JSON.stringify(info));
+      };
     },
   },
 };
