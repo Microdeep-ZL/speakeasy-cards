@@ -80,6 +80,9 @@ wsServer.on('request', function (request) {
   let connection = request.accept('echo-protocol', request.origin);
   
   connection.on('message', function (message) {
+    if(message.utf8Data==''){// 心跳回应
+      return
+    }
     var data = JSON.parse(message.utf8Data)
     console.log("Received message\n",data);
     switch (data.task) {

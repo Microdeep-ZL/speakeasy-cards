@@ -153,11 +153,11 @@ module.exports = class Game {
         for (let room of this.rooms) {
             for (let i in room.players) {
                 if (Object.is(connection, room.players[i].connection)) {
-                    room.players.splice(i, 1)
-                    this.updatePlayersNum(room.name)
-                    const info={
-                        room:room.name,
-                        player:room.players[i]
+                    // room.players.splice(i, 1)
+                    // this.updatePlayersNum(room.name)
+                    const info = {
+                        room: room.name,
+                        player: room.players[i].name
                     }
                     return info
                 }
@@ -218,9 +218,28 @@ module.exports = class Game {
         }
     }
 
+    updatePlayerCards(room_name, player_name) {
+        const player = this.getPlayer(room_name, player_name)
+        let result = {
+            task: "draw",
+            view: "hand",
+            cards: player.cards
+        };
+        player.connection.sendUTF(JSON.stringify(result))
+
+        result = {
+            task: "draw",
+            view: "table",
+            cards: this.getTableCards(room_name)
+        };
+        player.connection.sendUTF(JSON.stringify(result))
+    }
+
     setPlayerConnection(room_name, player_name, connection) {
         this.getPlayer(room_name, player_name).setConnection(connection)
         this.updatePlayersNum(room_name)
+        this.updatePlayerCards(room_name, player_name)
+
     }
 
     updatePlayersNum(room_name) {

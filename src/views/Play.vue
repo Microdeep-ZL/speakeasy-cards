@@ -60,6 +60,13 @@
       <v-col cols="12" class="red--text" v-show="last_alarm">
         This is already the last card
       </v-col>
+
+
+      <!-- 测试用 -->
+      <v-col cols="12" class="red--text">
+        {{this.$store.state.phone_info}}
+      </v-col>
+
     </v-row>
   </v-container>
 </template>
@@ -83,15 +90,12 @@ export default Vue.extend({
   },
   computed: {
     img_path() {
-      // return ''
-      // return "https://store.vuetifyjs.com/products/ui-lib-bundle?utm_source=vuetify"
       try {
         return require("../" +
           this.folder +
           this.cards[this.view][this.card_n[this.view] - 1] +
           ".jpg");
       } catch (e) {
-        // console.log("not exist");
         return require("../images/nocard.jpg");
       }
     },
