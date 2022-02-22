@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <h2 class="mb-3">{{title}}</h2>
+    <h2 class="mb-3">{{ title }}</h2>
     <v-row>
       <v-col cols="12">
         <div>
@@ -31,7 +31,7 @@
       <v-col cols="6">
         <v-btn @click="back">Back</v-btn>
       </v-col>
-      <v-col cols="6" v-if="title=='Create Room'">
+      <v-col cols="6" v-if="title == 'Create Room'">
         <v-btn @click="createRoom">OK</v-btn>
       </v-col>
       <v-col cols="6" v-else>
@@ -43,24 +43,33 @@
 
 <script>
 import axios from "axios";
-import {mapState} from "vuex"
+import { mapState } from "vuex";
 /* eslint-disable */
 export default {
   data: () => ({
     rules: [(value) => !!value || "Required."],
     room: "",
     player: "",
-    
   }),
-  computed:{
+  created() {
+    if (!this.title) {
+      const state = window.sessionStorage.getItem("state");
+      this.$store.replaceState(Object.assign({}, this.$store.state, JSON.parse(state)))
+    }else{
+      const state={
+        title:this.title
+      }
+      window.sessionStorage.setItem("state", JSON.stringify(state))
+    }
+  },
+  computed: {
     ...mapState(["title"]),
-
   },
   methods: {
     back() {
       this.$router.push("/");
     },
-    
+
     createRoom() {
       if (this.player == "" || this.room == "") {
         return;

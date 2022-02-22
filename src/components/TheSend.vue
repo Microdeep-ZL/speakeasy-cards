@@ -5,7 +5,7 @@
         <!-- 重要 -->
         <!-- :disabled="view != 'hand' || card_total==0" -->
         <v-col cols="4">
-          <v-btn v-bind="attrs" v-on="on"><v-icon>mdi-send</v-icon></v-btn>
+          <v-btn :disabled="view != 'hand' || card_total==0" v-bind="attrs" v-on="on"><v-icon>mdi-send</v-icon></v-btn>
         </v-col>
       </template>
 

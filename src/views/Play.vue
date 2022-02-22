@@ -101,8 +101,45 @@ export default Vue.extend({
   mounted() {
     // 测试用
     // window.vue=this
- 
- this.$store.commit("connect");
+
+    if (!this.room) {
+      const state = window.sessionStorage.getItem("state") as any;
+      this.$store.replaceState(
+        Object.assign({}, this.$store.state, JSON.parse(state))
+      );
+    } else {
+      const state = {
+        room: this.room,
+        player: this.player,
+        identity: this.identity,
+        client: this.client,
+
+        players: this.players,
+
+        card_n: this.card_n,
+
+        title: this.$store.state.title,
+
+        cards: this.cards,
+        view: this.view,
+
+        phone_info: this.$store.state.phone_info,
+      };
+      window.sessionStorage.setItem("state", JSON.stringify(state));
+    }
+
+    this.$store.commit("connect");
+  },
+  created() {
+    //   sessionStorage.setItem()
+    // //在页面加载时读取sessionStorage里的状态信息
+    // if (sessionStorage.getItem('store')) {
+    //   this.$store.replaceState(Object.assign({}, this.$store.state, JSON.parse(sessionStorage.getItem('store'))));
+    // }
+    // //在页面刷新时将vuex里的信息保存到sessionStorage里
+    // window.addEventListener('beforeunload', () => {
+    //   sessionStorage.setItem('store', JSON.stringify(this.$store.state));
+    // });
   },
   computed: {
     players_num() {
