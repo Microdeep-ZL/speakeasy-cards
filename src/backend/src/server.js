@@ -12,9 +12,10 @@ setInterval(
 ); //每隔24小时清除一次rooms.json内容
 
 function createRoom(query, response) {
+  // console.warn(query);
   var used
   if (game.getRoom(query.room)) {
-    used = true
+    used = true // inhibit create room
   } else {
     game.addRoom(query.room, query.player)
     used = false
@@ -49,9 +50,7 @@ function joinRoom(query, response) {
     notCreated: notCreated,
     players_num: players_num
   };
-  // console.log(result.notCreated);
   response.write(JSON.stringify(result));
-  // connection.sendUTF(JSON.stringify(result))
 
 }
 
@@ -66,8 +65,6 @@ var server = http.createServer(function (request, response) {
       createRoom(query, response); break;
     case "join":
       joinRoom(query, response); break;
-    // case "deal":
-    //   dealCards(query, response); break;
   }
   response.end();
 }).listen(6503, function () {
@@ -81,22 +78,14 @@ var wsServer = new WebSocketServer({
 
 wsServer.on('request', function (request) {
   let connection = request.accept('echo-protocol', request.origin);
-
-  // connection.sendUTF()
-
-  // console.log((new Date()) + ' Connection accepted.');
-  console.log(' Connection accepted.');
-
+  
   connection.on('message', function (message) {
-    // console.log('Received Message: ' + message.utf8Data);
-    // connection.sendUTF(message.utf8Data);
     var data = JSON.parse(message.utf8Data)
+    console.log("Received message\n",data);
     switch (data.task) {
       case "connect":
         game.setPlayerConnection(data.room, data.player,connection)
-        // game.getPlayer(data.room, data.player).setConnection(connection)
-        // updatePlayersNum(data.room)
-        // joinRoom(data, connection)
+        console.log('Connection accepted\n',data);
         break
       case "deal":
         game.dealCards(data.room, data.num)
@@ -104,16 +93,16 @@ wsServer.on('request', function (request) {
       case "draw":
         game.drawCards(data.room, data.player, data.view, data.num)
         break
-
       case "pick":
+        game.pick(data.room, data.player, data.card_index)
         break
     }
 
   });
 
   connection.on('close', function (reasonCode, description) {
-    game.exitPlayer(connection)
-    console.log(connection.remoteAddress + ' disconnected.');
+    // game.exitPlayer(connection)
+    console.log('Disconnected\n', game.whoDisconnected(connection));
 
   });
 });

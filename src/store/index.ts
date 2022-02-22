@@ -54,34 +54,39 @@ export default new Vuex.Store({
       }
 
       state.client.onmessage = function (e: any) {
-        // console.log(e.data);        
         const data = JSON.parse(e.data) as { view: "hand" | "table", [xx: string]: any };
+        console.log("Received message\n", data);
+
         switch (data.task) {
           case "updatePlayersNum":
             state.players_num = data.num;
             break
           case "draw":
+          case "pick":
             state.cards[data.view] = data.cards
-            if (data.view == state.view) { 
-              state.card_n[state.view] = state.cards[state.view].length
-             }else                if(state.card_n[data.view]==0){
-              state.card_n[data.view]=1
-             }
-             
+            if (data.task == "draw") {
+              // 如果增加牌，则立即看到新添的牌。如果减少牌，则card_n不变
+              state.card_n[data.view] = state.cards[data.view].length
+            }
             break
         }
       };
 
-      //   state.client.onclose = function() {
-      //     const info = {
-      //       task: "exit",
-      //       room: state.room,
-      //       player: state.player
-      //     }
-      //     state.client.send(JSON.stringify(info))
-      //     console.log("sent");
+      state.client.onclose = function () {
+        // 断线重连
 
-      // };
+
+
+
+        // const info = {
+        //   task: "exit",
+        //   room: state.room,
+        //   player: state.player
+        // }
+        // state.client.send(JSON.stringify(info))
+        // console.log("sent");
+
+      };
 
 
     },

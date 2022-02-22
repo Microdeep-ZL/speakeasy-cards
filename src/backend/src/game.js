@@ -34,17 +34,11 @@ module.exports = class Game {
 
     getRoom(room_name) {
         for (let room of this.rooms) {
-            if (room.name = room_name) {
+            if (room.name == room_name) {
                 return room
             }
         }
         return false
-
-        // if (this.rooms[room_name]) {
-        //     return this.rooms[room_name]
-        // } else {
-        //     return false
-        // }
     }
 
     addPlayer(room_name, player_name) {
@@ -63,7 +57,7 @@ module.exports = class Game {
             }
             return false
         } catch (e) {
-            console.warn(this.rooms);
+            console.error(this.rooms);
         }
     }
 
@@ -103,6 +97,31 @@ module.exports = class Game {
         return false
     }
 
+    pick(room_name, player_name, card_index) {
+        let table = this.getTableCards(room_name)
+        let player = this.getPlayer(room_name, player_name)
+        player.cards.push(table.splice(card_index, 1))
+
+        let result = {
+            task: "draw",
+            view: "hand",
+            cards: player.cards,
+        };
+        player.connection.sendUTF(JSON.stringify(result))
+
+        result = {
+            task: "pick",
+            view: "table",
+            cards: table,
+        };
+        for (let player of this.getPlayersByRoom(room_name)) {
+            player.connection.sendUTF(JSON.stringify(result))
+        }
+
+
+
+    }
+
     // resetDeck(room_name) {
     //     // todo 不应该粗暴地收回和重置deck
     //     // 收回每位玩家的手牌，重置deck
@@ -118,16 +137,34 @@ module.exports = class Game {
 
     // }
 
-    exitPlayer(connection) {
+    // exitPlayer(connection) {
+    //     for (let room of this.rooms) {
+    //         for (let i in room.players) {
+    //             if (Object.is(connection, room.players[i].connection)) {
+    //                 room.players.splice(i, 1)
+    //                 this.updatePlayersNum(room.name)
+    //                 return
+    //             }
+    //         }
+    //     }
+    // }
+
+    whoDisconnected(connection) {
         for (let room of this.rooms) {
             for (let i in room.players) {
                 if (Object.is(connection, room.players[i].connection)) {
                     room.players.splice(i, 1)
                     this.updatePlayersNum(room.name)
-                    return
+                    const info={
+                        room:room.name,
+                        player:room.players[i]
+                    }
+                    return info
                 }
             }
         }
+        return "unknown player"
+
     }
 
     dealCards(room_name, num) {
@@ -145,24 +182,6 @@ module.exports = class Game {
             };
             player.connection.sendUTF(JSON.stringify(result))
         }
-
-
-
-
-        // player.cards = []; // 重置每个玩家的手牌和deck
-
-        // for (var i = 0; i < num; i++) {
-        //     let a;
-        //     do {
-        //         // random number from 1 to the number of deck cards 
-        //     } while (a in used_cards);
-        //     let a = Math.floor(Math.random() * deck.length) + 1;
-        //     player.cards.push();
-        // }
-
-
-
-
     }
 
     drawCards(room_name, player_name, view, num) {
@@ -186,7 +205,7 @@ module.exports = class Game {
         const result = {
             task: "draw",
             view: view,
-            cards:[]
+            cards: []
         };
         if (view == "table") {
             result.cards = table
@@ -205,20 +224,26 @@ module.exports = class Game {
     }
 
     updatePlayersNum(room_name) {
-        // const room = this.getRoom(room_name)
-        // console.log(room.players);
         const result = {
             task: "updatePlayersNum",
             num: this.getPlayersNum(room_name)
         }
         this.getPlayersByRoom(room_name).map(function (p) {
-            // console.log(p);
             try {
                 p.connection.sendUTF(JSON.stringify(result))
             } catch (e) {
-                console.warn(p.name);
+                console.error(p.name);
             }
         })
     }
+
+    // updateTableCards(room_name, cards){
+    //     const result={
+
+    //     }
+    //     for (let player of this.getPlayersByRoom(room_name)) {
+    //         player.connection.sendUTF(JSON.stringify(result))
+    //     }
+    // }
 
 }

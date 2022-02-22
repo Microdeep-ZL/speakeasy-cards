@@ -83,19 +83,17 @@ export default Vue.extend({
   },
   computed: {
     img_path() {
-// return ''
-// return "https://store.vuetifyjs.com/products/ui-lib-bundle?utm_source=vuetify"
-        try{
-            return require("../" +
-              this.folder +
-              this.cards[this.view][this.card_n[this.view] - 1] +
-              ".jpg")
-
-        }catch(e){
-            // console.log("not exist");         
-            return require("../images/nocard.jpg")
-            }
-
+      // return ''
+      // return "https://store.vuetifyjs.com/products/ui-lib-bundle?utm_source=vuetify"
+      try {
+        return require("../" +
+          this.folder +
+          this.cards[this.view][this.card_n[this.view] - 1] +
+          ".jpg");
+      } catch (e) {
+        // console.log("not exist");
+        return require("../images/nocard.jpg");
+      }
     },
     card_total() {
       return this.cards[this.view].length;
@@ -142,7 +140,6 @@ export default Vue.extend({
     },
 
     draw(num: number) {
-      // todo 要区分给桌子上还是给手牌
       const info = {
         task: "draw",
         room: this.room,
@@ -157,31 +154,9 @@ export default Vue.extend({
       // todo
     },
 
-    //   axios.get(
-    //     "http://47.107.143.38:6503/?task=deal&num=" +
-    //       i +
-    //       "&room=" +
-    //       this.room
-    //   );
-    // this._setNums();
-
-    // draw(cards: number) {
-    //   this.last_alarm = false;
-    //   this.first_alarm = false;
-
-    //   this.cards = [];
-    //   for (var i = 0; i < cards; i++) {
-    //     let a;
-    //     do {
-    //       a = Math.floor(Math.random() * 54) + 1; // random number from 1 to 54
-    //     } while (a in this.cards);
-    //     this.cards.push(a);
-    //   }
-    // },
-
     previous() {
       this.last_alarm = false;
-      if (this.card_n[this.view]== 1) {
+      if (this.card_n[this.view] == 1) {
         this.first_alarm = true;
       } else {
         this.card_n[this.view]--;
@@ -189,7 +164,7 @@ export default Vue.extend({
     },
     next() {
       this.first_alarm = false;
-      if (this.card_n[this.view]== this.card_total) {
+      if (this.card_n[this.view] == this.card_total) {
         this.last_alarm = true;
       } else {
         this.card_n[this.view]++;
@@ -204,11 +179,13 @@ export default Vue.extend({
       }
     },
     pick() {
-      //   const info = {
-      //     task: "pick",
-      //     card: ,
-      //   };
-      //   this.client.send(JSON.stringify(info));
+      const info = {
+        task: "pick",
+        room: this.room,
+        player: this.player,
+        card_index: this.card_n.table - 1,
+      };
+      this.client.send(JSON.stringify(info));
     },
   },
 });
