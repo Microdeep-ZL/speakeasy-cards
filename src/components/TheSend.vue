@@ -83,6 +83,7 @@ export default {
         card_index: this.card_n[this.view] - 1,
       };
       this.client.send(JSON.stringify(info));
+      this.dialog=false
     },
   },
 };

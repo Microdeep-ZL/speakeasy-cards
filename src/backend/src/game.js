@@ -221,42 +221,45 @@ module.exports = class Game {
 
     setPlayerConnection(room_name, player_name, connection) {
         // 异常处理，有时候服务器重启，而之前的断线重连，就会不存在这个房间
-        try{            
-            const player=this.getPlayer(room_name, player_name)
+        try {
+            const player = this.getPlayer(room_name, player_name)
             player.setConnection(connection)
-            const result={
-                task:"updatePlayers",
-                players: this.getPlayersByRoom(room_name).map(function(player){return player.name})
-            }
-            // 只能传player.name的数组，不能直接传players
-            // 因为每个player含有connection的属性，循环引用是不能转为json字符串的
-            player.connection.sendUTF(JSON.stringify(result))
+            // const result={
+            //     task:"updatePlayers",
+            //     players: this.getPlayersByRoom(room_name).map(function(player){return player.name})
+            // }
+            
+            // player.connection.sendUTF(JSON.stringify(result))
+            this.updatePlayers(room_name)
             this.updatePlayerCards(room_name, player_name)
             return true
-        }catch(e){
+        } catch (e) {
             console.error(e);
             console.error("找不到该房间及用户！");
-            console.error("传入参数：",room_name, player_name);
-            console.error("rooms\n",this.rooms);
+            console.error("传入参数：", room_name, player_name);
+            console.error("rooms\n", this.rooms);
             return false
 
         }
 
     }
 
-    // updatePlayersNum(room_name) {
-    //     const result = {
-    //         task: "updatePlayersNum",
-    //         num: this.getPlayersNum(room_name)
-    //     }
-    //     this.getPlayersByRoom(room_name).map(function (p) {
-    //         try {
-    //             p.connection.sendUTF(JSON.stringify(result))
-    //         } catch (e) {
-    //             console.error(p.name);
-    //         }
-    //     })
-    // }
+    updatePlayers(room_name) {
+        // 只能传player.name的数组，不能直接传players
+        // 因为每个player含有connection的属性，循环引用是不能转为json字符串的
+        const result = {
+            task: "updatePlayers",
+            players: this.getPlayersByRoom(room_name).map(function (player) { return player.name })
+        }
+
+        this.getPlayersByRoom(room_name).map(function (p) {
+            try {
+                p.connection.sendUTF(JSON.stringify(result))
+            } catch (e) {
+                console.error("Failed to send information to user:", p.name);
+            }
+        })
+    }
 
     discardCard(room_name, player_name, view, card_index) {
         switch (view) {
@@ -289,6 +292,23 @@ module.exports = class Game {
         for (let player of this.getPlayersByRoom(room_name)) {
             player.connection.sendUTF(JSON.stringify(result))
         }
+
+    }
+
+    sendCard(room_name, player_name, player_to, card_index){
+        const p1=this.getPlayer(room_name,player_name)
+        const p2=this.getPlayer(room_name,player_to)
+        p2.cards.push(p1.cards.splice(card_index,1))
+
+        const result = {
+            task: "draw",
+            view: "hand",
+        };
+
+        result.cards=p1.cards
+        p1.connection.sendUTF(JSON.stringify(result))
+        result.cards=p2.cards
+        p2.connection.sendUTF(JSON.stringify(result))
 
     }
 

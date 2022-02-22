@@ -103,6 +103,9 @@ wsServer.on('request', function (request) {
         case "discard":
         game.discardCard(data.room, data.player, data.view, data.card_index)
         break
+        case "send":
+        game.sendCard(data.room, data.player, data.to, data.card_index)
+        break
     }
 
   });
