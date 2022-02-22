@@ -87,7 +87,9 @@ wsServer.on('request', function (request) {
     console.log("Received message\n",data);
     switch (data.task) {
       case "connect":
-        game.setPlayerConnection(data.room, data.player,connection)
+        if(game.setPlayerConnection(data.room, data.player,connection)){
+          console.log('Connection accepted\n', data);
+        }
         break
       case "deal":
         game.dealCards(data.room, data.num)

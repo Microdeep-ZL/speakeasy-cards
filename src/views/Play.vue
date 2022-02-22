@@ -16,7 +16,6 @@
         <h5>view: {{ view }}</h5>
       </v-col>
 
-
       <v-col>
         <v-btn :disabled="!draw_view" small @click="draw(1)">Draw</v-btn>
       </v-col>
@@ -27,7 +26,12 @@
       </v-col>
 
       <v-col>
-        <v-btn :disabled="(!draw_view) || card_total==0" small @click="discard()">Discard</v-btn>
+        <v-btn
+          :disabled="!draw_view || card_total == 0"
+          small
+          @click="discard()"
+          >Discard</v-btn
+        >
       </v-col>
 
       <!-- 卡牌展示 -->
@@ -35,12 +39,21 @@
         <v-img :src="img_path" contain max-height="350" />
       </v-col>
 
-      <v-col cols="6">
+      <v-col cols="4">
         <v-btn @click="previous">previous</v-btn>
       </v-col>
-      <v-col cols="6">
+
+
+      <v-col cols="4">
+        <v-btn @click="send" :disabled="view !='hand'"><v-icon>mdi-send</v-icon></v-btn>
+      </v-col>
+
+
+
+      <v-col cols="4">
         <v-btn @click="next">next</v-btn>
       </v-col>
+
       <v-col>
         <v-btn @click="flip">flip</v-btn>
       </v-col>
@@ -80,12 +93,17 @@ export default Vue.extend({
     folder: "images/image",
     first_alarm: false,
     last_alarm: false,
+
+    player_to:''
   }),
   mounted() {
     // window.vue=this
     this.$store.commit("connect");
   },
   computed: {
+      players_num(){
+          return this.players.length
+      },
     img_path() {
       try {
         return require("../" +
@@ -122,7 +140,8 @@ export default Vue.extend({
       "room",
       "player",
       "identity",
-      "players_num",
+    //   "players_num",
+    "players",
       "cards",
       "card_n",
       "view",
@@ -136,10 +155,21 @@ export default Vue.extend({
         room: this.room,
         player: this.player,
         view: this.view,
-        card_index: this.card_n[this.view] - 1
+        card_index: this.card_n[this.view] - 1,
       };
       this.client.send(JSON.stringify(info));
     },
+    send() {
+      const info = {
+        task: "send",
+        room: this.room,
+        player: this.player,
+        to: this.player_to,
+        card_index: this.card_n[this.view] - 1,
+      };
+      this.client.send(JSON.stringify(info));
+    },
+
     deal(num: number) {
       const info = {
         task: "deal",

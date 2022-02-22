@@ -222,31 +222,41 @@ module.exports = class Game {
     setPlayerConnection(room_name, player_name, connection) {
         // 异常处理，有时候服务器重启，而之前的断线重连，就会不存在这个房间
         try{            
-            this.getPlayer(room_name, player_name).setConnection(connection)
-            this.updatePlayersNum(room_name)
-            this.updatePlayerCards(room_name, player_name)
-            console.log('Connection accepted\n',data);
-        }catch(e){
-            console.error("找不到该房间及用户！");
-            console.error(this.rooms);
-
-        }
-
-    }
-
-    updatePlayersNum(room_name) {
-        const result = {
-            task: "updatePlayersNum",
-            num: this.getPlayersNum(room_name)
-        }
-        this.getPlayersByRoom(room_name).map(function (p) {
-            try {
-                p.connection.sendUTF(JSON.stringify(result))
-            } catch (e) {
-                console.error(p.name);
+            const player=this.getPlayer(room_name, player_name)
+            player.setConnection(connection)
+            const result={
+                task:"updatePlayers",
+                players: this.getPlayersByRoom(room_name).map(function(player){return player.name})
             }
-        })
+            // 只能传player.name的数组，不能直接传players
+            // 因为每个player含有connection的属性，循环引用是不能转为json字符串的
+            player.connection.sendUTF(JSON.stringify(result))
+            this.updatePlayerCards(room_name, player_name)
+            return true
+        }catch(e){
+            console.error(e);
+            console.error("找不到该房间及用户！");
+            console.error("传入参数：",room_name, player_name);
+            console.error("rooms\n",this.rooms);
+            return false
+
+        }
+
     }
+
+    // updatePlayersNum(room_name) {
+    //     const result = {
+    //         task: "updatePlayersNum",
+    //         num: this.getPlayersNum(room_name)
+    //     }
+    //     this.getPlayersByRoom(room_name).map(function (p) {
+    //         try {
+    //             p.connection.sendUTF(JSON.stringify(result))
+    //         } catch (e) {
+    //             console.error(p.name);
+    //         }
+    //     })
+    // }
 
     discardCard(room_name, player_name, view, card_index) {
         switch (view) {

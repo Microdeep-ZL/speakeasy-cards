@@ -10,7 +10,10 @@ export default new Vuex.Store({
     player: "",
     identity: "",
     client: null as any,
-    players_num: 0,
+
+    // players_num: 0, // todo 写好players之后，弃用players_num
+    players:[],
+
     card_n: { table: 0, hand: 0 },
 
     title: "",
@@ -33,9 +36,9 @@ export default new Vuex.Store({
     setIdentity(state, identity) {
       state.identity = identity;
     },
-    setPlayersNum(state, players_num) {
-      state.players_num = players_num
-    },
+    // setPlayersNum(state, players_num) {
+    //   state.players_num = players_num
+    // },
     setTitle(state, title) {
       state.title = title
     },
@@ -75,8 +78,11 @@ export default new Vuex.Store({
           console.log("Received message\n", data);
 
           switch (data.task) {
-            case "updatePlayersNum":
-              state.players_num = data.num;
+            // case "updatePlayersNum":
+            //   state.players_num = data.num;
+            //   break
+            case "updatePlayers":
+              state.players=data.players;
               break
             case "draw":
               const is_more = state.cards[data.view].length < data.cards.length
