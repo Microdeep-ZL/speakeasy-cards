@@ -5,7 +5,7 @@
       <v-col cols="12" v-for="b in buttons" :key="b.name">
         <div>
           <div class="my-1">
-            <v-btn @click="to(b.path)">{{ b.name }}</v-btn>
+            <v-btn @click="to(b)">{{ b.name }}</v-btn>
           </div>
         </div>
       </v-col>
@@ -19,15 +19,16 @@ export default Vue.extend({
   data() {
     return {
       buttons: [
-        { name: "Create Room", path: "create" },
+        { name: "Create Room", path: "join" },
         { name: "Join Room", path: "join" },
         { name: "Single Play", path: "single" },
       ],
     };
   },
   methods: {
-    to(path: string) {
-      this.$router.push(path);
+    to(b:any) {
+      this.$store.commit("setTitle",b.name)
+      this.$router.push(b.path);
     },
   },
 });

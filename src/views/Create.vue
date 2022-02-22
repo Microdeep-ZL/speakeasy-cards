@@ -85,20 +85,20 @@ export default {
         );
     },
 
-    connect() {
-      var client = new WebSocket("ws://47.107.143.38:8080/", "echo-protocol");
-      client.onmessage = function (e) {
-        // alert(e.data)
-        console.log("Received: '" + e.data + "'");
-      };
-      client.onopen = function (res) {
-        let info = {
-          room: this.room,
-          player: this.player,
-        };
-        client.send(JSON.stringify(info));
-      };
-    },
+    // connect() {
+    //   var client = new WebSocket("ws://47.107.143.38:8080/", "echo-protocol");
+    //   client.onmessage = function (e) {
+    //     // alert(e.data)
+    //     console.log("Received: '" + e.data + "'");
+    //   };
+    //   client.onopen = function (res) {
+    //     let info = {
+    //       room: this.room,
+    //       player: this.player,
+    //     };
+    //     client.send(JSON.stringify(info));
+    //   };
+    // },
   },
 };
 </script>

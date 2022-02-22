@@ -10,7 +10,9 @@ export default new Vuex.Store({
     player: "",
     identity: "",
     client: null as any,
-    players_num: 0
+    players_num: 0,
+    
+    title:""
   },
   getters: {},
   mutations: {
@@ -25,6 +27,9 @@ export default new Vuex.Store({
     },
     setPlayersNum(state,players_num){
       state.players_num=players_num
+    },
+    setTitle(state,title){
+      state.title=title
     },
 
     connect(state) {
