@@ -23,6 +23,8 @@ function createRoom(query, response) {
   var result = {
     used: used
   }
+  console.warn(game.rooms);
+  console.warn(query.room);
   response.write(JSON.stringify(result));
 }
 
@@ -43,7 +45,7 @@ function joinRoom(query, response) {
     players_num = game.getPlayersNum(query.room)
   }
 
-  let result = {
+  const result = {
     task: "join",
     identity: identity,
     notCreated: notCreated,
@@ -55,43 +57,43 @@ function joinRoom(query, response) {
 
 }
 
-function dealCards(query, response) {
-  let used_cards = [];
-  for (let player of game.getPlayersByRoom(query.room)) {
-    player.cards = []; // 重置每个玩家的手牌
-    for (var i = 0; i < query.num; i++) {
-      let a;
-      do {
-        a = Math.floor(Math.random() * 54) + 1; // random number from 1 to 54
-      } while (a in used_cards);
-      used_cards.push(a);
-      player.cards.push(a);
-    }
-  }
+// function dealCards(query, response) {
+//   let used_cards = [];
+//   for (let player of game.getPlayersByRoom(query.room)) {
+//     player.cards = []; // 重置每个玩家的手牌
+//     for (var i = 0; i < query.num; i++) {
+//       let a;
+//       do {
+//         a = Math.floor(Math.random() * 54) + 1; // random number from 1 to 54
+//       } while (a in used_cards);
+//       used_cards.push(a);
+//       player.cards.push(a);
+//     }
+//   }
 
-}
+// }
 
-function updatePlayersNum(room_name) {
-  // const room = game.getRoom(room_name)
-  // console.log(room.players);
-  const result = {
-    task: "updatePlayersNum",
-    num: game.getPlayersNum(room_name)
-  }
-  game.getPlayersByRoom(room_name).map(function (p) {
-    // console.log(p);
-    try{
-      p.connection.sendUTF(JSON.stringify(result))
-    } catch(e) {
-      console.warn(p.name);
-    }
-    // if (p.connection) {
-    //   p.connection.sendUTF(JSON.stringify(result))
-    // } else {
-    //   console.warn(p.name);
-    // }
-  })
-}
+// function updatePlayersNum(room_name) {
+//   // const room = game.getRoom(room_name)
+//   // console.log(room.players);
+//   const result = {
+//     task: "updatePlayersNum",
+//     num: game.getPlayersNum(room_name)
+//   }
+//   game.getPlayersByRoom(room_name).map(function (p) {
+//     // console.log(p);
+//     try {
+//       p.connection.sendUTF(JSON.stringify(result))
+//     } catch (e) {
+//       console.warn(p.name);
+//     }
+//     // if (p.connection) {
+//     //   p.connection.sendUTF(JSON.stringify(result))
+//     // } else {
+//     //   console.warn(p.name);
+//     // }
+//   })
+// }
 
 var server = http.createServer(function (request, response) {
   response.writeHead(200, {
@@ -104,8 +106,8 @@ var server = http.createServer(function (request, response) {
       createRoom(query, response); break;
     case "join":
       joinRoom(query, response); break;
-    case "deal":
-      dealCards(query, response); break;
+    // case "deal":
+    //   dealCards(query, response); break;
   }
   response.end();
 }).listen(6503, function () {
@@ -130,15 +132,14 @@ wsServer.on('request', function (request) {
     var data = JSON.parse(message.utf8Data)
     switch (data.task) {
       case "connect":
-        game.getPlayer(data.room, data.player).setConnection(connection)
-        updatePlayersNum(data.room)
+        game.setPlayerConnection(data.room, data.player,connection)
+        // game.getPlayer(data.room, data.player).setConnection(connection)
+        // updatePlayersNum(data.room)
         // joinRoom(data, connection)
-
         break
-      case "exit":
-        console.log(data);
-        game.exitPlayer(data.room,data.player)
-        updatePlayersNum(data.room)
+      case "deal":
+        game.dealCards(data.room, data.num)
+        break
       case "pick":
         break
     }
@@ -146,8 +147,9 @@ wsServer.on('request', function (request) {
   });
 
   connection.on('close', function (reasonCode, description) {
-    let room_name=game.exitPlayer(connection)
-    updatePlayersNum(room_name)
+    game.exitPlayer(connection)
+    // let room_name = game.exitPlayer(connection)
+    // updatePlayersNum(room_name)
     // for(let room of game.getRooms()){
     //   for(let p of game.getPlayersByRoom(room.name))
     // }

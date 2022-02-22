@@ -12,7 +12,9 @@ export default new Vuex.Store({
     client: null as any,
     players_num: 0,
     
-    title:""
+    title:"",
+
+    cards:{ table: [50, 12, 23], hand: [2, 3] }
   },
   getters: {},
   mutations: {
@@ -50,6 +52,9 @@ export default new Vuex.Store({
         switch (data.task) {
           case "updatePlayersNum":
             state.players_num = data.num;
+            break
+            case "deal":
+              state.cards.hand=data.cards
             break
         }
       };

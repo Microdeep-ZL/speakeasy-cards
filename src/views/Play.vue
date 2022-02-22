@@ -3,16 +3,16 @@
     <v-row class="text-center">
       <v-col cols="12">
         <h2>
-          {{ this.$store.state.room }}
+          {{ this.room }}
         </h2>
       </v-col>
       <v-col cols="4" class="text-left caption">
         <h5>
-          {{ this.$store.state.identity }}: {{ this.$store.state.player }}
+          {{ this.identity }}: {{ this.player }}
         </h5>
       </v-col>
       <v-col cols="4" class="caption">
-        <h5>players: {{ this.$store.state.players_num }}</h5>
+        <h5>players: {{ this.players_num }}</h5>
       </v-col>
       <v-col cols="4" class="text-right caption">
         <h5>view: {{ view }}</h5>
@@ -61,6 +61,7 @@
 <script lang="ts">
 import Vue from "vue";
 import axios from "axios";
+import { mapState } from "vuex";
 /* eslint-disable */
 function getRooms(fun: Function) {
   axios
@@ -79,8 +80,6 @@ export default Vue.extend({
 
   data: () => ({
     folder: "images/image",
-
-    nums: { table: [50, 12, 23], hand: [2, 3] },
     card_n: 1,
     // card_total: 3,
 
@@ -88,6 +87,7 @@ export default Vue.extend({
     last_alarm: false,
 
     view: "table" as "table" | "hand",
+    
   }),
   mounted() {
     // window.vue=this
@@ -97,19 +97,19 @@ export default Vue.extend({
     img_path() {
       return require("../" +
         this.folder +
-        this.nums[this.view][this.card_n - 1] +
+        this.cards[this.view][this.card_n - 1] +
         ".jpg");
     },
-    players_num() {},
     card_total() {
-      return this.nums[this.view].length;
+      return this.cards[this.view].length;
     },
     creator_view(){
-      if(this.$store.state.identity=="Creator"){
+      if(this.identity=="Creator"){
         return true
       }
       return false
-    }
+    },
+    ...mapState(['client','room','player','identity','players_num','cards'])
   },
   methods: {
     switchView() {
@@ -120,38 +120,47 @@ export default Vue.extend({
       // update player's cards in hand
       // let rooms = require("@/assets/rooms.json");
       getRooms((rooms: any) => {
-        for (let player of rooms[this.$store.state.room].players) {
-          if (player.name == this.$store.state.player) {
-            this.nums.hand = player.cards;
+        for (let player of rooms[this.room].players) {
+          if (player.name == this.player) {
+            this.cards.hand = player.cards;
             break;
           }
         }
       });
 
-      // this.card_total = this.nums.length;
+      // this.card_total = this.cards.length;
     },
-    deal(i: number) {
-      axios.get(
-        "http://47.107.143.38:6503/?task=deal&num=" +
-          i +
-          "&room=" +
-          this.$store.state.room
-      );
+    deal(num: number) {
+        const info = {
+          task: "deal",
+          room: this.room,
+          num:num
+        }
+        this.client.send(JSON.stringify(info))
+
+    //   axios.get(
+    //     "http://47.107.143.38:6503/?task=deal&num=" +
+    //       i +
+    //       "&room=" +
+    //       this.room
+    //   );
       // this._setNums();
     },
     // draw(cards: number) {
     //   this.last_alarm = false;
     //   this.first_alarm = false;
 
-    //   this.nums = [];
+    //   this.cards = [];
     //   for (var i = 0; i < cards; i++) {
     //     let a;
     //     do {
     //       a = Math.floor(Math.random() * 54) + 1; // random number from 1 to 54
-    //     } while (a in this.nums);
-    //     this.nums.push(a);
+    //     } while (a in this.cards);
+    //     this.cards.push(a);
     //   }
     // },
+
+
     previous() {
       this.last_alarm = false;
       if (this.card_n == 1) {
@@ -176,7 +185,9 @@ export default Vue.extend({
         this.folder = "images/image";
       }
     },
-    pick() {},
+    pick() {
+
+    },
   },
 });
 </script>

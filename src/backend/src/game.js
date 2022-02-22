@@ -13,8 +13,6 @@ class Room {
         this.name = name
         this.creator = creator_name
         this.players = [new Person(creator_name)]
-        // this.creator = new Person(creator_name)
-        // this.players = [this.creator]
         this.table_cards = []
     }
 }
@@ -29,8 +27,8 @@ module.exports = class Game {
     }
 
     getRoom(room_name) {
-        for(let room of this.rooms){
-            if(room.name=room_name){
+        for (let room of this.rooms) {
+            if (room.name = room_name) {
                 return room
             }
         }
@@ -51,12 +49,14 @@ module.exports = class Game {
 
     getPlayer(room_name, player_name) {
         // 如果player存在，则返回该player，否则返回false
-       try{ for (let p of this.getPlayersByRoom(room_name)) {
-            if (p.name == player_name) {
-                return p
+        try {
+            for (let p of this.getPlayersByRoom(room_name)) {
+                if (p.name == player_name) {
+                    return p
+                }
             }
-        }
-        return false}catch(e){
+            return false
+        } catch (e) {
             console.warn(this.rooms);
         }
     }
@@ -89,22 +89,60 @@ module.exports = class Game {
         for (let room of this.rooms) {
             for (let i in room.players) {
                 if (Object.is(connection, room.players[i].connection)) {
-                    room.players.splice(i,1)
-                    return room.name
+                    room.players.splice(i, 1)
+                    this.updatePlayersNum(room.name)
+                    return
                 }
             }
         }
     }
 
-    // exitPlayer(room_name, player_name){
-    //     let players=this.getPlayersByRoom(room_name)
-    //     for(let i in players){
-    //         if(players[i].name==player_name){
-    //             players.splice(i,1)
-    //         }
-    //         break
-    //     }
+    dealCards(room_name, num) {
+        // 给房间内的每个人发num张牌
+        let used_cards = [];
+        for (let player of this.getPlayersByRoom(room_name)) {
+            player.cards = []; // 重置每个玩家的手牌
+            for (var i = 0; i < num; i++) {
+                let a;
+                do {
+                    a = Math.floor(Math.random() * 54) + 1; // random number from 1 to 54
+                } while (a in used_cards);
+                used_cards.push(a);
+                player.cards.push(a);
+            }
 
-    // }
+            const result = {
+                task: "deal",
+                cards: player.cards,
+            };
+            player.connection.sendUTF(JSON.stringify(result))
+        }
+
+
+
+
+    }
+
+    setPlayerConnection(room_name, player_name,connection){
+        this.getPlayer(room_name,player_name).setConnection(connection)
+        this.updatePlayersNum(room_name)
+    }
+
+    updatePlayersNum(room_name) {
+        // const room = this.getRoom(room_name)
+        // console.log(room.players);
+        const result = {
+          task: "updatePlayersNum",
+          num: this.getPlayersNum(room_name)
+        }
+        this.getPlayersByRoom(room_name).map(function (p) {
+          // console.log(p);
+          try {
+            p.connection.sendUTF(JSON.stringify(result))
+          } catch (e) {
+            console.warn(p.name);
+          }
+        })
+      }
 
 }

@@ -14,26 +14,26 @@ const routes: Array<RouteConfig> = [
     name: "single",
     component: () => import("../views/Single.vue"),
   },
-  {
-    path: "/create",
-    name: "create",
-    component: () => import("../views/Create.vue"),
-  },
+  // {
+  //   path: "/create",
+  //   name: "create",
+  //   component: () => import("../views/Create.vue"),
+  // },
   {
     path: "/join",
     name: "join",
     component: () => import("../views/Join.vue"),
   },
-  {
-    path: "/Creator",
-    name: "creator",
-    component: () => import("../views/PlayCreator.vue"),
-  },
-  {
-    path: "/Player",
-    name: "player",
-    component: () => import("../views/PlayPlayer.vue"),
-  },
+  // {
+  //   path: "/Creator",
+  //   name: "creator",
+  //   component: () => import("../views/PlayCreator.vue"),
+  // },
+  // {
+  //   path: "/Player",
+  //   name: "player",
+  //   component: () => import("../views/PlayPlayer.vue"),
+  // },
   {
     path: "/play",
     name: "play",
