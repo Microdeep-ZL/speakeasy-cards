@@ -23,8 +23,6 @@ function createRoom(query, response) {
   var result = {
     used: used
   }
-  console.warn(game.rooms);
-  console.warn(query.room);
   response.write(JSON.stringify(result));
 }
 
@@ -57,44 +55,6 @@ function joinRoom(query, response) {
 
 }
 
-// function dealCards(query, response) {
-//   let used_cards = [];
-//   for (let player of game.getPlayersByRoom(query.room)) {
-//     player.cards = []; // 重置每个玩家的手牌
-//     for (var i = 0; i < query.num; i++) {
-//       let a;
-//       do {
-//         a = Math.floor(Math.random() * 54) + 1; // random number from 1 to 54
-//       } while (a in used_cards);
-//       used_cards.push(a);
-//       player.cards.push(a);
-//     }
-//   }
-
-// }
-
-// function updatePlayersNum(room_name) {
-//   // const room = game.getRoom(room_name)
-//   // console.log(room.players);
-//   const result = {
-//     task: "updatePlayersNum",
-//     num: game.getPlayersNum(room_name)
-//   }
-//   game.getPlayersByRoom(room_name).map(function (p) {
-//     // console.log(p);
-//     try {
-//       p.connection.sendUTF(JSON.stringify(result))
-//     } catch (e) {
-//       console.warn(p.name);
-//     }
-//     // if (p.connection) {
-//     //   p.connection.sendUTF(JSON.stringify(result))
-//     // } else {
-//     //   console.warn(p.name);
-//     // }
-//   })
-// }
-
 var server = http.createServer(function (request, response) {
   response.writeHead(200, {
     "Content-Type": "text/plain",
@@ -125,6 +85,7 @@ wsServer.on('request', function (request) {
   // connection.sendUTF()
 
   // console.log((new Date()) + ' Connection accepted.');
+  console.log(' Connection accepted.');
 
   connection.on('message', function (message) {
     // console.log('Received Message: ' + message.utf8Data);
@@ -140,6 +101,10 @@ wsServer.on('request', function (request) {
       case "deal":
         game.dealCards(data.room, data.num)
         break
+      case "draw":
+        game.drawCards(data.room, data.player, data.view, data.num)
+        break
+
       case "pick":
         break
     }
@@ -148,12 +113,7 @@ wsServer.on('request', function (request) {
 
   connection.on('close', function (reasonCode, description) {
     game.exitPlayer(connection)
-    // let room_name = game.exitPlayer(connection)
-    // updatePlayersNum(room_name)
-    // for(let room of game.getRooms()){
-    //   for(let p of game.getPlayersByRoom(room.name))
-    // }
-    // console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
+    console.log(connection.remoteAddress + ' disconnected.');
 
   });
 });

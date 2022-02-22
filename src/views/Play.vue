@@ -1,33 +1,39 @@
 <template>
   <v-container>
-    <v-row class="text-center">
+    <v-row class="text-center" justify="space-around">
       <v-col cols="12">
         <h2>
-          {{ this.room }}
+          {{ room }}
         </h2>
       </v-col>
       <v-col cols="4" class="text-left caption">
-        <h5>
-          {{ this.identity }}: {{ this.player }}
-        </h5>
+        <h5>{{ identity }}: {{ player }}</h5>
       </v-col>
       <v-col cols="4" class="caption">
-        <h5>players: {{ this.players_num }}</h5>
+        <h5>players: {{ players_num }}</h5>
       </v-col>
       <v-col cols="4" class="text-right caption">
         <h5>view: {{ view }}</h5>
       </v-col>
 
-      <v-col v-show="creator_view" cols="3">
-        <h3>Deal Cards</h3>
+      <!-- <v-col v-show="creator_view" cols="3" >
+        <h3>Deal</h3>
+      </v-col> -->
+      <v-col v-show="creator_view">
+        <!-- <v-btn small @click="deal(1)">Deal</v-btn> -->
+        <v-btn small @click="deal(1)">Deal</v-btn>
       </v-col>
-      <v-col v-show="creator_view" cols="2" v-for="i in [1, 3, 5, 8]" :key="'image' + i">
-        <v-btn small @click="deal(i)">{{ i }}</v-btn>
+
+      <!-- <v-col v-show="draw_view" cols="3" >
+        <h3>Draw</h3>
+      </v-col> -->
+      <v-col>
+        <v-btn :disabled="!draw_view" small @click="draw(1)">Draw</v-btn>
       </v-col>
 
       <!-- 卡牌展示 -->
       <v-col cols="12">
-        <v-img :src="img_path" class="my-n15" contain height="350" />
+        <v-img :src="img_path" contain max-height="350" />
       </v-col>
 
       <v-col cols="6">
@@ -46,7 +52,7 @@
         <v-btn @click="pick" :disabled="view != 'table'">pick</v-btn>
       </v-col>
 
-      <v-col cols="12"> card {{ card_n }}/{{ card_total }} </v-col>
+      <v-col cols="12"> card {{ card_n[view] }}/{{ card_total }} </v-col>
 
       <v-col cols="12" class="red--text" v-show="first_alarm">
         This is already the first card
@@ -60,34 +66,16 @@
 
 <script lang="ts">
 import Vue from "vue";
-import axios from "axios";
-import { mapState } from "vuex";
+import { mapMutations, mapState } from "vuex";
 /* eslint-disable */
-function getRooms(fun: Function) {
-  axios
-    .get("http://47.107.143.38:6503", {
-      params: {
-        task: "getRooms",
-      },
-    })
-    .then((data) => {
-      fun(data.data);
-    });
-}
 
 export default Vue.extend({
   name: "HelloWorld",
 
   data: () => ({
     folder: "images/image",
-    card_n: 1,
-    // card_total: 3,
-
     first_alarm: false,
     last_alarm: false,
-
-    view: "table" as "table" | "hand",
-    
   }),
   mounted() {
     // window.vue=this
@@ -95,48 +83,79 @@ export default Vue.extend({
   },
   computed: {
     img_path() {
-      return require("../" +
-        this.folder +
-        this.cards[this.view][this.card_n - 1] +
-        ".jpg");
+// return ''
+// return "https://store.vuetifyjs.com/products/ui-lib-bundle?utm_source=vuetify"
+        try{
+            return require("../" +
+              this.folder +
+              this.cards[this.view][this.card_n[this.view] - 1] +
+              ".jpg")
+
+        }catch(e){
+            // console.log("not exist");         
+            return require("../images/nocard.jpg")
+            }
+
     },
     card_total() {
       return this.cards[this.view].length;
     },
-    creator_view(){
-      if(this.identity=="Creator"){
-        return true
+    creator_view() {
+      if (this.identity == "Creator") {
+        return true;
       }
-      return false
+      return false;
     },
-    ...mapState(['client','room','player','identity','players_num','cards'])
+    draw_view() {
+      // 房主任何时候都可以抽牌（给自己抽，给桌子上抽）
+      // 普通玩家只能给自己抽牌
+      if (this.identity == "Creator") {
+        return true;
+      } else if (this.view == "hand") {
+        return true;
+      } else {
+        return false;
+      }
+    },
+
+    ...mapState([
+      "client",
+      "room",
+      "player",
+      "identity",
+      "players_num",
+      "cards",
+      "card_n",
+      "view",
+    ]),
   },
   methods: {
-    switchView() {
-      this.view = this.view == "table" ? "hand" : "table";
+    ...mapMutations(["switchView"]),
+
+    deal(num: number) {
+      const info = {
+        task: "deal",
+        room: this.room,
+        num: num,
+      };
+      this.client.send(JSON.stringify(info));
+    },
+
+    draw(num: number) {
+      // todo 要区分给桌子上还是给手牌
+      const info = {
+        task: "draw",
+        room: this.room,
+        player: this.player,
+        view: this.view,
+        num: num,
+      };
+      this.client.send(JSON.stringify(info));
+    },
+
+    sendCard() {
       // todo
     },
-    _setNums() {
-      // update player's cards in hand
-      // let rooms = require("@/assets/rooms.json");
-      getRooms((rooms: any) => {
-        for (let player of rooms[this.room].players) {
-          if (player.name == this.player) {
-            this.cards.hand = player.cards;
-            break;
-          }
-        }
-      });
-
-      // this.card_total = this.cards.length;
-    },
-    deal(num: number) {
-        const info = {
-          task: "deal",
-          room: this.room,
-          num:num
-        }
-        this.client.send(JSON.stringify(info))
 
     //   axios.get(
     //     "http://47.107.143.38:6503/?task=deal&num=" +
@@ -144,8 +163,8 @@ export default Vue.extend({
     //       "&room=" +
     //       this.room
     //   );
-      // this._setNums();
-    },
+    // this._setNums();
+
     // draw(cards: number) {
     //   this.last_alarm = false;
     //   this.first_alarm = false;
@@ -160,21 +179,20 @@ export default Vue.extend({
     //   }
     // },
 
-
     previous() {
       this.last_alarm = false;
-      if (this.card_n == 1) {
+      if (this.card_n[this.view]== 1) {
         this.first_alarm = true;
       } else {
-        this.card_n--;
+        this.card_n[this.view]--;
       }
     },
     next() {
       this.first_alarm = false;
-      if (this.card_n == this.card_total) {
+      if (this.card_n[this.view]== this.card_total) {
         this.last_alarm = true;
       } else {
-        this.card_n++;
+        this.card_n[this.view]++;
       }
     },
 
@@ -186,7 +204,11 @@ export default Vue.extend({
       }
     },
     pick() {
-
+      //   const info = {
+      //     task: "pick",
+      //     card: ,
+      //   };
+      //   this.client.send(JSON.stringify(info));
     },
   },
 });

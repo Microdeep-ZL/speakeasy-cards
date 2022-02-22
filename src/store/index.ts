@@ -11,10 +11,13 @@ export default new Vuex.Store({
     identity: "",
     client: null as any,
     players_num: 0,
-    
-    title:"",
+    card_n: { table: 0, hand: 0 },
 
-    cards:{ table: [50, 12, 23], hand: [2, 3] }
+    title: "",
+
+    cards: { table: [], hand: [] },
+    view: "table" as "table" | "hand",
+
   },
   getters: {},
   mutations: {
@@ -27,11 +30,15 @@ export default new Vuex.Store({
     setIdentity(state, identity) {
       state.identity = identity;
     },
-    setPlayersNum(state,players_num){
-      state.players_num=players_num
+    setPlayersNum(state, players_num) {
+      state.players_num = players_num
     },
-    setTitle(state,title){
-      state.title=title
+    setTitle(state, title) {
+      state.title = title
+    },
+
+    switchView(state) {
+      state.view = state.view == "table" ? "hand" : "table";
     },
 
     connect(state) {
@@ -48,27 +55,33 @@ export default new Vuex.Store({
 
       state.client.onmessage = function (e: any) {
         // console.log(e.data);        
-        const data = JSON.parse(e.data);
+        const data = JSON.parse(e.data) as { view: "hand" | "table", [xx: string]: any };
         switch (data.task) {
           case "updatePlayersNum":
             state.players_num = data.num;
             break
-            case "deal":
-              state.cards.hand=data.cards
+          case "draw":
+            state.cards[data.view] = data.cards
+            if (data.view == state.view) { 
+              state.card_n[state.view] = state.cards[state.view].length
+             }else                if(state.card_n[data.view]==0){
+              state.card_n[data.view]=1
+             }
+             
             break
         }
       };
 
-    //   state.client.onclose = function() {
-    //     const info = {
-    //       task: "exit",
-    //       room: state.room,
-    //       player: state.player
-    //     }
-    //     state.client.send(JSON.stringify(info))
-    //     console.log("sent");
-        
-    // };
+      //   state.client.onclose = function() {
+      //     const info = {
+      //       task: "exit",
+      //       room: state.room,
+      //       player: state.player
+      //     }
+      //     state.client.send(JSON.stringify(info))
+      //     console.log("sent");
+
+      // };
 
 
     },

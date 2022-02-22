@@ -14,6 +14,12 @@ class Room {
         this.creator = creator_name
         this.players = [new Person(creator_name)]
         this.table_cards = []
+
+
+        this.deck = []
+        for (let i = 1; i <= 54; i++) {
+            this.deck.push(i)
+        }
     }
 }
 
@@ -69,6 +75,18 @@ module.exports = class Game {
         return false
     }
 
+    getDeckByRoom(room_name) {
+        let room = this.getRoom(room_name)
+        if (room) {
+            return room.deck
+        }
+        return false
+    }
+
+    getTableCards(room_name) {
+        return this.getRoom(room_name).table_cards
+    }
+
     isCreator(room_name, player_name) {
         let room = this.getRoom(room_name)
         if (room.creator == player_name) {
@@ -85,6 +103,21 @@ module.exports = class Game {
         return false
     }
 
+    // resetDeck(room_name) {
+    //     // todo 不应该粗暴地收回和重置deck
+    //     // 收回每位玩家的手牌，重置deck
+    //     for (let player of this.getPlayersByRoom(room_name)) {
+    //         player.cards = [];
+    //     }
+
+    //     let deck = this.getDeckByRoom(room_name)
+    //     deck.length = 0
+    //     for (let i = 1; i <= 54; i++) {
+    //         deck.push(i)
+    //     }
+
+    // }
+
     exitPlayer(connection) {
         for (let room of this.rooms) {
             for (let i in room.players) {
@@ -99,20 +132,15 @@ module.exports = class Game {
 
     dealCards(room_name, num) {
         // 给房间内的每个人发num张牌
-        let used_cards = [];
+
+        // let deck = this.getDeckByRoom(room_name)
+        // deck = [];
         for (let player of this.getPlayersByRoom(room_name)) {
-            player.cards = []; // 重置每个玩家的手牌
-            for (var i = 0; i < num; i++) {
-                let a;
-                do {
-                    a = Math.floor(Math.random() * 54) + 1; // random number from 1 to 54
-                } while (a in used_cards);
-                used_cards.push(a);
-                player.cards.push(a);
-            }
+            this.drawCards(room_name, player.name, "hand", num)
 
             const result = {
-                task: "deal",
+                task: "draw",
+                view: "hand",
                 cards: player.cards,
             };
             player.connection.sendUTF(JSON.stringify(result))
@@ -121,10 +149,58 @@ module.exports = class Game {
 
 
 
+        // player.cards = []; // 重置每个玩家的手牌和deck
+
+        // for (var i = 0; i < num; i++) {
+        //     let a;
+        //     do {
+        //         // random number from 1 to the number of deck cards 
+        //     } while (a in used_cards);
+        //     let a = Math.floor(Math.random() * deck.length) + 1;
+        //     player.cards.push();
+        // }
+
+
+
+
     }
 
-    setPlayerConnection(room_name, player_name,connection){
-        this.getPlayer(room_name,player_name).setConnection(connection)
+    drawCards(room_name, player_name, view, num) {
+        let deck = this.getDeckByRoom(room_name)
+        let table = this.getTableCards(room_name)
+        let player = this.getPlayer(room_name, player_name)
+
+        for (var i = 0; i < num; i++) {
+            // random number from 0 to (the number of deck cards -1) 
+            let a = Math.floor(Math.random() * deck.length);
+            let card = deck.splice(a, 1)
+            if (view == "table") {
+                table.push(card)
+
+            } else if (view == "hand") {
+                player.cards.push(card);
+
+            }
+        }
+
+        const result = {
+            task: "draw",
+            view: view,
+            cards:[]
+        };
+        if (view == "table") {
+            result.cards = table
+            for (let player of this.getPlayersByRoom(room_name)) {
+                player.connection.sendUTF(JSON.stringify(result))
+            }
+        } else if (view == "hand") {
+            result.cards = player.cards
+            player.connection.sendUTF(JSON.stringify(result))
+        }
+    }
+
+    setPlayerConnection(room_name, player_name, connection) {
+        this.getPlayer(room_name, player_name).setConnection(connection)
         this.updatePlayersNum(room_name)
     }
 
@@ -132,17 +208,17 @@ module.exports = class Game {
         // const room = this.getRoom(room_name)
         // console.log(room.players);
         const result = {
-          task: "updatePlayersNum",
-          num: this.getPlayersNum(room_name)
+            task: "updatePlayersNum",
+            num: this.getPlayersNum(room_name)
         }
         this.getPlayersByRoom(room_name).map(function (p) {
-          // console.log(p);
-          try {
-            p.connection.sendUTF(JSON.stringify(result))
-          } catch (e) {
-            console.warn(p.name);
-          }
+            // console.log(p);
+            try {
+                p.connection.sendUTF(JSON.stringify(result))
+            } catch (e) {
+                console.warn(p.name);
+            }
         })
-      }
+    }
 
 }
