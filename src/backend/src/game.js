@@ -109,16 +109,7 @@ module.exports = class Game {
         };
         player.connection.sendUTF(JSON.stringify(result))
 
-        result = {
-            task: "pick",
-            view: "table",
-            cards: table,
-        };
-        for (let player of this.getPlayersByRoom(room_name)) {
-            player.connection.sendUTF(JSON.stringify(result))
-        }
-
-
+        this.updateTableCards(room_name)
 
     }
 
@@ -135,18 +126,6 @@ module.exports = class Game {
     //         deck.push(i)
     //     }
 
-    // }
-
-    // exitPlayer(connection) {
-    //     for (let room of this.rooms) {
-    //         for (let i in room.players) {
-    //             if (Object.is(connection, room.players[i].connection)) {
-    //                 room.players.splice(i, 1)
-    //                 this.updatePlayersNum(room.name)
-    //                 return
-    //             }
-    //         }
-    //     }
     // }
 
     whoDisconnected(connection) {
@@ -185,37 +164,42 @@ module.exports = class Game {
     }
 
     drawCards(room_name, player_name, view, num) {
-        let deck = this.getDeckByRoom(room_name)
-        let table = this.getTableCards(room_name)
-        let player = this.getPlayer(room_name, player_name)
+        switch (view) {
+            case "table":
+                let table = this.getTableCards(room_name)
+                this.getNewCards(room_name, num).map(function (card) {
+                    table.push(card)
+                })
+                this.updateTableCards(room_name);
+                break
 
+            case "hand":
+                let player = this.getPlayer(room_name, player_name)
+                this.getNewCards(room_name, num).map(function (card) {
+                    player.cards.push(card)
+                })
+                const result = {
+                    task: "draw",
+                    view: "hand",
+                    cards: player.cards
+                }
+                player.connection.sendUTF(JSON.stringify(result))
+                break
+
+        }
+    }
+
+    getNewCards(room_name, num) {
+        let cards = []
+        const deck = this.getDeckByRoom(room_name)
+        // todo 异常处理，如果deck里的牌用完了，要有提示
         for (var i = 0; i < num; i++) {
             // random number from 0 to (the number of deck cards -1) 
             let a = Math.floor(Math.random() * deck.length);
-            let card = deck.splice(a, 1)
-            if (view == "table") {
-                table.push(card)
-
-            } else if (view == "hand") {
-                player.cards.push(card);
-
-            }
+            cards.push(deck.splice(a, 1))
         }
+        return cards
 
-        const result = {
-            task: "draw",
-            view: view,
-            cards: []
-        };
-        if (view == "table") {
-            result.cards = table
-            for (let player of this.getPlayersByRoom(room_name)) {
-                player.connection.sendUTF(JSON.stringify(result))
-            }
-        } else if (view == "hand") {
-            result.cards = player.cards
-            player.connection.sendUTF(JSON.stringify(result))
-        }
     }
 
     updatePlayerCards(room_name, player_name) {
@@ -236,9 +220,17 @@ module.exports = class Game {
     }
 
     setPlayerConnection(room_name, player_name, connection) {
-        this.getPlayer(room_name, player_name).setConnection(connection)
-        this.updatePlayersNum(room_name)
-        this.updatePlayerCards(room_name, player_name)
+        // 异常处理，有时候服务器重启，而之前的断线重连，就会不存在这个房间
+        try{            
+            this.getPlayer(room_name, player_name).setConnection(connection)
+            this.updatePlayersNum(room_name)
+            this.updatePlayerCards(room_name, player_name)
+            console.log('Connection accepted\n',data);
+        }catch(e){
+            console.error("找不到该房间及用户！");
+            console.error(this.rooms);
+
+        }
 
     }
 
@@ -256,13 +248,38 @@ module.exports = class Game {
         })
     }
 
-    // updateTableCards(room_name, cards){
-    //     const result={
+    discardCard(room_name, player_name, view, card_index) {
+        switch (view) {
+            case "table":
+                const table = this.getTableCards(room_name)
+                table.splice(card_index, 1)
+                this.updateTableCards(room_name)
+                break
 
-    //     }
-    //     for (let player of this.getPlayersByRoom(room_name)) {
-    //         player.connection.sendUTF(JSON.stringify(result))
-    //     }
-    // }
+            case "hand":
+                const player = this.getPlayer(room_name, player_name)
+                player.cards.splice(card_index, 1)
+
+                const result = {
+                    task: "draw",
+                    view: "hand",
+                    cards: player.cards
+                };
+                player.connection.sendUTF(JSON.stringify(result))
+                break
+        }
+    }
+
+    updateTableCards(room_name) {
+        const result = {
+            task: "draw",
+            view: "table",
+            cards: this.getTableCards(room_name)
+        };
+        for (let player of this.getPlayersByRoom(room_name)) {
+            player.connection.sendUTF(JSON.stringify(result))
+        }
+
+    }
 
 }

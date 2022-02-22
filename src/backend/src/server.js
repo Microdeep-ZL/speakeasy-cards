@@ -88,7 +88,6 @@ wsServer.on('request', function (request) {
     switch (data.task) {
       case "connect":
         game.setPlayerConnection(data.room, data.player,connection)
-        console.log('Connection accepted\n',data);
         break
       case "deal":
         game.dealCards(data.room, data.num)
@@ -98,6 +97,9 @@ wsServer.on('request', function (request) {
         break
       case "pick":
         game.pick(data.room, data.player, data.card_index)
+        break
+        case "discard":
+        game.discardCard(data.room, data.player, data.view, data.card_index)
         break
     }
 

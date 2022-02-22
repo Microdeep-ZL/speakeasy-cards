@@ -18,7 +18,7 @@ export default new Vuex.Store({
     cards: { table: [], hand: [] },
     view: "table" as "table" | "hand",
 
-    phone_info:'phone_info'
+    phone_info: 'phone_info'
     // phone_info:'phone_info'
 
   },
@@ -58,9 +58,9 @@ export default new Vuex.Store({
 
       //socket初始化
       function webSocketInit(service: string) {
-        var ws = new WebSocket(service,"echo-protocol");
+        var ws = new WebSocket(service, "echo-protocol");
         ws.onopen = function () {
-          console.log("ws connected!");state.phone_info="ws connected!"
+          console.log("ws connected!"); state.phone_info = "ws connected!"
           // 建立ws连接，并且更新房间内所有玩家的“玩家人数”数值
           const info = {
             task: "connect",
@@ -79,40 +79,37 @@ export default new Vuex.Store({
               state.players_num = data.num;
               break
             case "draw":
-            case "pick":
+              const is_more = state.cards[data.view].length < data.cards.length
               state.cards[data.view] = data.cards
-              if (data.task == "draw" || state.card_n[data.view] > state.cards[data.view].length) {
-                // 如果增加牌，则立即看到新添的牌。
-                // 如果减少牌，当card_n比持有牌数还多的时候也要设为持有牌数，否则card_n不变
+              if (is_more || state.card_n[data.view] > state.cards[data.view].length) {
                 state.card_n[data.view] = state.cards[data.view].length
               }
-            
               break
           }
 
         };
 
         ws.onclose = function () {
-          console.log('ws disconnected!');state.phone_info='ws disconnected!'
+          console.log('ws disconnected!'); state.phone_info = 'ws disconnected!'
           reconnect(service);
         };
 
         state.client = ws
 
       }
-      
+
       // 重连
-      function reconnect(service:string) {
-        if(limitConnect > 0) {
+      function reconnect(service: string) {
+        if (limitConnect > 0) {
           limitConnect--;
           timeConnect++;
-          console.log("第" + timeConnect + "次重连");state.phone_info="第" + timeConnect + "次重连"
+          console.log("第" + timeConnect + "次重连"); state.phone_info = "第" + timeConnect + "次重连"
           // 进行重连
           setTimeout(function () {
             webSocketInit(service);
           }, 2000);
-        } else{          
-          console.log("connection time out");state.phone_info="connection time out"
+        } else {
+          console.log("connection time out"); state.phone_info = "connection time out"
         }
       }
 

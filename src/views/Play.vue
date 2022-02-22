@@ -16,19 +16,18 @@
         <h5>view: {{ view }}</h5>
       </v-col>
 
-      <!-- <v-col v-show="creator_view" cols="3" >
-        <h3>Deal</h3>
-      </v-col> -->
+
+      <v-col>
+        <v-btn :disabled="!draw_view" small @click="draw(1)">Draw</v-btn>
+      </v-col>
+
       <v-col v-show="creator_view">
         <!-- <v-btn small @click="deal(1)">Deal</v-btn> -->
         <v-btn small @click="deal(1)">Deal</v-btn>
       </v-col>
 
-      <!-- <v-col v-show="draw_view" cols="3" >
-        <h3>Draw</h3>
-      </v-col> -->
       <v-col>
-        <v-btn :disabled="!draw_view" small @click="draw(1)">Draw</v-btn>
+        <v-btn :disabled="(!draw_view) || card_total==0" small @click="discard()">Discard</v-btn>
       </v-col>
 
       <!-- 卡牌展示 -->
@@ -61,12 +60,10 @@
         This is already the last card
       </v-col>
 
-
       <!-- 测试用 -->
       <v-col cols="12" class="red--text">
-        {{this.$store.state.phone_info}}
+        {{ this.$store.state.phone_info }}
       </v-col>
-
     </v-row>
   </v-container>
 </template>
@@ -133,7 +130,16 @@ export default Vue.extend({
   },
   methods: {
     ...mapMutations(["switchView"]),
-
+    discard() {
+      const info = {
+        task: "discard",
+        room: this.room,
+        player: this.player,
+        view: this.view,
+        card_index: this.card_n[this.view] - 1
+      };
+      this.client.send(JSON.stringify(info));
+    },
     deal(num: number) {
       const info = {
         task: "deal",
