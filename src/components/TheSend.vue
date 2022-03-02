@@ -5,7 +5,7 @@
         <!-- 重要 -->
         <!-- :disabled="view != 'hand' || card_total==0" -->
         <v-col cols="4">
-          <v-btn :disabled="view != 'hand' || card_total==0" v-bind="attrs" v-on="on"><v-icon>mdi-send</v-icon></v-btn>
+          <v-btn :disabled="sendDisable" v-bind="attrs" v-on="on"><v-icon>mdi-send</v-icon></v-btn>
         </v-col>
       </template>
 
@@ -66,7 +66,10 @@ export default {
     };
   },
   computed: {
-    ...mapState(["room", "player", "card_n", "client", "view", "players"]),
+    ...mapState(["room", "player", "card_n", "client", "view", "players","cards"]),
+    sendDisable(){
+      return this.view == 'table' || this.cards.hand.length== 0
+    },
     otherPlayers() {
       return this.players.filter((player_name) =>{
         return player_name != this.player;

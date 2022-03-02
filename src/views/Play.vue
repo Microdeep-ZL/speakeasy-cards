@@ -57,7 +57,7 @@
         <v-btn @click="switchView"><v-icon>mdi-sync</v-icon></v-btn>
       </v-col>
       <v-col>
-        <v-btn @click="pick" :disabled="view != 'table'">pick</v-btn>
+        <v-btn @click="pick" :disabled="pickDisable">pick</v-btn>
       </v-col>
 
       <v-col cols="12"> card {{ card_n[view] }}/{{ card_total }} </v-col>
@@ -130,18 +130,11 @@ export default Vue.extend({
 
     this.$store.commit("connect");
   },
-  created() {
-    //   sessionStorage.setItem()
-    // //在页面加载时读取sessionStorage里的状态信息
-    // if (sessionStorage.getItem('store')) {
-    //   this.$store.replaceState(Object.assign({}, this.$store.state, JSON.parse(sessionStorage.getItem('store'))));
-    // }
-    // //在页面刷新时将vuex里的信息保存到sessionStorage里
-    // window.addEventListener('beforeunload', () => {
-    //   sessionStorage.setItem('store', JSON.stringify(this.$store.state));
-    // });
-  },
   computed: {
+    pickDisable(){
+     return this.view != 'table' || this.cards.table.length==0
+
+    },
     players_num() {
       return this.players.length;
     },
