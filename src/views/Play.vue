@@ -51,7 +51,7 @@
       </v-col>
 
       <v-col>
-        <v-btn @click="flip">flip</v-btn>
+        <v-btn @click="flip" :disabled="flipDisabled">flip</v-btn>
       </v-col>
       <v-col>
         <v-btn @click="switchView"><v-icon>mdi-sync</v-icon></v-btn>
@@ -134,6 +134,9 @@ export default Vue.extend({
     pickDisable(){
      return this.view != 'table' || this.cards.table.length==0
 
+    },
+    flipDisabled(){
+      return this.view == 'table' && this.identity != "Creator"
     },
     players_num() {
       return this.players.length;
