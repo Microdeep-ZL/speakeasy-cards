@@ -78,16 +78,16 @@ var wsServer = new WebSocketServer({
 
 wsServer.on('request', function (request) {
   let connection = request.accept('echo-protocol', request.origin);
-  
+
   connection.on('message', function (message) {
-    if(message.utf8Data==''){// 心跳回应
+    if (message.utf8Data == '') {// 心跳回应
       return
     }
     var data = JSON.parse(message.utf8Data)
-    console.log("Received message\n",data);
+    console.log("Received message\n", data);
     switch (data.task) {
       case "connect":
-        if(game.setPlayerConnection(data.room, data.player,connection)){
+        if (game.setPlayerConnection(data.room, data.player, connection)) {
           console.log('Connection accepted\n', data);
         }
         break
@@ -100,11 +100,14 @@ wsServer.on('request', function (request) {
       case "pick":
         game.pick(data.room, data.player, data.card_index)
         break
-        case "discard":
+      case "discard":
         game.discardCard(data.room, data.player, data.view, data.card_index)
         break
-        case "send":
+      case "send":
         game.sendCard(data.room, data.player, data.to, data.card_index)
+        break
+      case "flipTable":
+        game.flipTable(data.room)
         break
     }
 

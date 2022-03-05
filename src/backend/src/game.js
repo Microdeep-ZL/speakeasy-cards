@@ -14,7 +14,7 @@ class Room {
         this.creator = creator_name
         this.players = [new Person(creator_name)]
         this.table_cards = []
-
+        this.tableFolder = "images/image" // 默认桌面上的牌是图片面朝上
 
         this.deck = []
         for (let i = 1; i <= 54; i++) {
@@ -113,21 +113,6 @@ module.exports = class Game {
 
     }
 
-    // resetDeck(room_name) {
-    //     // todo 不应该粗暴地收回和重置deck
-    //     // 收回每位玩家的手牌，重置deck
-    //     for (let player of this.getPlayersByRoom(room_name)) {
-    //         player.cards = [];
-    //     }
-
-    //     let deck = this.getDeckByRoom(room_name)
-    //     deck.length = 0
-    //     for (let i = 1; i <= 54; i++) {
-    //         deck.push(i)
-    //     }
-
-    // }
-
     whoDisconnected(connection) {
         for (let room of this.rooms) {
             for (let i in room.players) {
@@ -148,9 +133,6 @@ module.exports = class Game {
 
     dealCards(room_name, num) {
         // 给房间内的每个人发num张牌
-
-        // let deck = this.getDeckByRoom(room_name)
-        // deck = [];
         for (let player of this.getPlayersByRoom(room_name)) {
             this.drawCards(room_name, player.name, "hand", num)
 
@@ -224,12 +206,6 @@ module.exports = class Game {
         try {
             const player = this.getPlayer(room_name, player_name)
             player.setConnection(connection)
-            // const result={
-            //     task:"updatePlayers",
-            //     players: this.getPlayersByRoom(room_name).map(function(player){return player.name})
-            // }
-            
-            // player.connection.sendUTF(JSON.stringify(result))
             this.updatePlayers(room_name)
             this.updatePlayerCards(room_name, player_name)
             return true
@@ -295,21 +271,42 @@ module.exports = class Game {
 
     }
 
-    sendCard(room_name, player_name, player_to, card_index){
-        const p1=this.getPlayer(room_name,player_name)
-        const p2=this.getPlayer(room_name,player_to)
-        p2.cards.push(p1.cards.splice(card_index,1))
+    sendCard(room_name, player_name, player_to, card_index) {
+        const p1 = this.getPlayer(room_name, player_name)
+        const p2 = this.getPlayer(room_name, player_to)
+        p2.cards.push(p1.cards.splice(card_index, 1))
 
         const result = {
             task: "draw",
             view: "hand",
         };
 
-        result.cards=p1.cards
+        result.cards = p1.cards
         p1.connection.sendUTF(JSON.stringify(result))
-        result.cards=p2.cards
+        result.cards = p2.cards
         p2.connection.sendUTF(JSON.stringify(result))
 
+    }
+
+    updateTableFolder(room_name, tableFolder) {
+        const result = {
+            task: "flipTable",
+            tableFolder: tableFolder
+        };
+        for (let player of this.getPlayersByRoom(room_name)) {
+            player.connection.sendUTF(JSON.stringify(result))
+        }
+
+    }
+
+    flipTable(room_name) {
+        const room = this.getRoom(room_name)
+        if (room.tableFolder == "images/image") {
+            room.tableFolder = "questions/question";
+        } else {
+            room.tableFolder = "images/image";
+        }
+        this.updateTableFolder(room_name, room.tableFolder)
     }
 
 }

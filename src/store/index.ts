@@ -8,10 +8,10 @@ export default new Vuex.Store({
   state: {
     room: "",
     player: "",
-    identity: "",
+    identity: "" as "Creator" | "Player",
     client: null as any,
 
-    players:[],
+    players: [],
 
     card_n: { table: 0, hand: 0 },
 
@@ -20,7 +20,8 @@ export default new Vuex.Store({
     cards: { table: [], hand: [] },
     view: "table" as "table" | "hand",
 
-    phone_info: 'phone_info'
+    phone_info: 'phone_info',
+    folder: { table: "images/image", hand: "images/image" } as { [xx: string]: "images/image" | "questions/question" }
 
   },
   getters: {},
@@ -74,7 +75,7 @@ export default new Vuex.Store({
 
           switch (data.task) {
             case "updatePlayers":
-              state.players=data.players;
+              state.players = data.players;
               break
             case "draw":
               const is_more = state.cards[data.view].length < data.cards.length
@@ -82,6 +83,9 @@ export default new Vuex.Store({
               if (is_more || state.card_n[data.view] > state.cards[data.view].length) {
                 state.card_n[data.view] = state.cards[data.view].length
               }
+              break
+            case "flipTable":
+              state.folder.table=data.tableFolder
               break
           }
 
@@ -111,6 +115,13 @@ export default new Vuex.Store({
         }
       }
     },
+    flipPersonalFolder(state) {
+      if (state.folder.hand == "images/image") {
+        state.folder.hand = "questions/question";
+      } else {
+        state.folder.hand = "images/image";
+      }
+    }
 
   },
   actions: {},
