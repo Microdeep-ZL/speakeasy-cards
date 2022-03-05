@@ -92,9 +92,6 @@ export default {
             this.$store.commit("setRoom", this.room);
             this.$store.commit("setPlayer", this.player);
             this.$store.commit("setIdentity", "Creator");
-            // this.$store.commit("setPlayersNum", 1);
-            // this.$store.commit("connect")
-            // this.$router.push("/Creator");
             this.$router.push("/play");
           },
           (err) => {

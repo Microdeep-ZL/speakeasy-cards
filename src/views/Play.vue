@@ -91,7 +91,7 @@ export default Vue.extend({
   },
 
   data: () => ({
-    folder: "images/image",
+    // folder: "images/image",
     first_alarm: false,
     last_alarm: false,
 
@@ -131,12 +131,11 @@ export default Vue.extend({
     this.$store.commit("connect");
   },
   computed: {
-    pickDisable(){
-     return this.view != 'table' || this.cards.table.length==0
-
+    pickDisable() {
+      return this.view != "table" || this.cards.table.length == 0;
     },
-    flipDisabled(){
-      return this.view == 'table' && this.identity != "Creator"
+    flipDisabled() {
+      return this.view == "table" && this.identity != "Creator";
     },
     players_num() {
       return this.players.length;
@@ -144,7 +143,7 @@ export default Vue.extend({
     img_path() {
       try {
         return require("../" +
-          this.folder +
+          this.folder[this.view] +
           this.cards[this.view][this.card_n[this.view] - 1] +
           ".jpg");
       } catch (e) {
@@ -181,6 +180,7 @@ export default Vue.extend({
       "cards",
       "card_n",
       "view",
+      "folder",
     ]),
   },
   methods: {
@@ -215,14 +215,9 @@ export default Vue.extend({
       };
       this.client.send(JSON.stringify(info));
     },
-
-    sendCard() {
-      // todo
-    },
-
     previous() {
       this.last_alarm = false;
-      if (this.card_n[this.view] == 1) {
+      if (this.card_n[this.view] < 2) {
         this.first_alarm = true;
       } else {
         this.card_n[this.view]--;
@@ -238,10 +233,14 @@ export default Vue.extend({
     },
 
     flip() {
-      if (this.folder == "images/image") {
-        this.folder = "questions/question";
+      if (this.view == "hand") {
+        this.$store.commit("flipPersonalFolder");
       } else {
-        this.folder = "images/image";
+        const info = {
+          task: "flipTable",
+          room: this.room,
+        };
+        this.client.send(JSON.stringify(info));
       }
     },
     pick() {
