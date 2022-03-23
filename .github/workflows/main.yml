@@ -1,0 +1,42 @@
+name: CI
+on:
+  push:
+    branches: master
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          npm i
+          npm run build
+          
+      - uses: appleboy/ssh-action@v0.1.4
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          script: |
+            mkdir -p /home/fenghs/speakeasy/
+            cd /home/fenghs/speakeasy/
+            rm -rf source_files && echo 已删除旧文件  
+            mkdir source_files        
+      
+      - uses: cross-the-world/scp-pipeline@v1.2.1
+        # 把刚刚打包好的dist目录上传到服务器上
+        with:
+          host: ${{ secrets.HOST }}
+          user: ${{ secrets.USERNAME }}
+          pass: ${{ secrets.PASSWORD }}          
+          local: './dist/*'
+          remote: /home/fenghs/speakeasy/source_files/
+
+      - uses: appleboy/ssh-action@v0.1.4
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          script: docker restart speakeasy_nginx_byFengHS
+             
+      
+
