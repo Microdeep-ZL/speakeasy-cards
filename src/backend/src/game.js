@@ -32,6 +32,15 @@ module.exports = class Game {
         this.rooms.push(new Room(room_name, creator_name));
     }
 
+    deleteRoom(room_name) {
+        for (let i in this.rooms) {
+            if(this.rooms[i].name==room_name){
+                this.rooms.splice(i, 1);
+                break
+            }
+        }
+    }
+
     getRoom(room_name) {
         for (let room of this.rooms) {
             if (room.name == room_name) {
@@ -70,7 +79,7 @@ module.exports = class Game {
     }
 
     getDeckByRoom(room_name) {
-        let room = this.getRoom(room_name)
+        const room = this.getRoom(room_name)
         if (room) {
             return room.deck
         }
@@ -271,9 +280,26 @@ module.exports = class Game {
 
     }
 
-    sendCard(room_name, player_name, player_to, card_index) {
+    sendCard(room_name, player_name, to, card_index) {
+        // 新功能，允许玩家把手牌放回桌上
+        if (to == "table") {
+            const table = this.getTableCards(room_name)
+            const p1 = this.getPlayer(room_name, player_name)
+            table.push(p1.cards.splice(card_index, 1))
+            this.updateTableCards(room_name)
+
+            const result = {
+                task: "draw",
+                view: "hand",
+            };
+
+            result.cards = p1.cards
+            p1.connection.sendUTF(JSON.stringify(result))
+            return
+        }
+        // 原先只有玩家之间互送手牌
         const p1 = this.getPlayer(room_name, player_name)
-        const p2 = this.getPlayer(room_name, player_to)
+        const p2 = this.getPlayer(room_name, to)
         p2.cards.push(p1.cards.splice(card_index, 1))
 
         const result = {

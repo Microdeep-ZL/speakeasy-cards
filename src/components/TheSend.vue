@@ -41,6 +41,9 @@
           </v-row>
         </v-container>
         <v-card-actions>
+          <v-btn color="primary" large text @click="send('table');dialog = false">
+            table
+          </v-btn>
           <v-spacer></v-spacer>
           <v-btn color="primary" large text @click="dialog = false">
             back

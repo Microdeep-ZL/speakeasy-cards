@@ -4,20 +4,25 @@ const WebSocketServer = require('websocket').server
 const Game = require("./game");
 
 var game = new Game()
-setInterval(
-  function () {
-    game = new Game()
-  },
-  24 * 60 * 60 * 1000
-); //每隔24小时清除一次rooms.json内容
+
+// setInterval(
+//   function () {
+//     game = new Game()
+//   },
+//   24 * 60 * 60 * 1000
+// ); //每隔24小时更新所有room
 
 function createRoom(query, response) {
-  // console.warn(query);
   var used
   if (game.getRoom(query.room)) {
     used = true // inhibit create room
   } else {
     game.addRoom(query.room, query.player)
+    setTimeout(
+      function () {
+        game.deleteRoom(query.room)
+      },
+      24 * 60 * 60 * 1000); // room会在24小时后被清除
     used = false
   }
 
